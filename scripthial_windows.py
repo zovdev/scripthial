@@ -13,9 +13,9 @@ g_glow = True
 g_rcs = True
 g_aimbot = True
 g_aimbot_rcs = True
-g_aimbot_head = False
-g_aimbot_fov = 1.0 / 180.0
-g_aimbot_smooth = 5.0
+g_aimbot_head = True
+g_aimbot_fov = 3.0 / 180.0
+g_aimbot_smooth = 2.0
 g_aimbot_key = 107
 g_triggerbot_key = 111
 g_exit_key = 72
@@ -72,7 +72,7 @@ class Process:
     def __init__(self, name):
         self.mem = self.get_process_handle(name)
         if self.mem == 0:
-            raise Exception("Process [" + name + "] not found!")
+            raise Exception(f"Process [{name}] not found!")
         self.peb = self.get_process_peb(self.mem, True)
         if self.peb == 0:
             self.peb = self.get_process_peb(self.mem, False)
@@ -158,7 +158,7 @@ class Process:
             if str(val).lower() == name.lower():
                 return self.read_i64(a1 + a0[4], a0[0])
             a1 = self.read_i64(a1, a0[0])
-        raise Exception("Module [" + name + "] not found!")
+        raise Exception(f"Module [{name}] not found!")
 
     def get_export(self, module, name):
         if module == 0:
@@ -172,7 +172,7 @@ class Process:
                 a2 = self.read_i16(module + a1[3] + (a1[0] * 2))
                 a3 = self.read_i32(module + a1[1] + (a2 * 4))
                 return module + a3
-        raise Exception("Export [" + name + "] not found!")
+        raise Exception(f"Export [{name}] not found!")
 
     def find_pattern(self, module_name, pattern, mask):
         a0 = self.get_module(module_name)
@@ -209,7 +209,7 @@ class InterfaceTable:
             if name.encode('ascii', 'ignore') == mem.read_string(mem.read_i32(a0 + 0x4), 120)[0:-3]:
                 return VirtualTable(mem.read_i32(mem.read_i32(a0) + 1))
             a0 = mem.read_i32(a0 + 0x8)
-        raise Exception("Interface [" + name + "] not found!")
+        raise Exception(f"Interface [{name}] not found!")
 
 
 class NetVarTable:
@@ -222,12 +222,12 @@ class NetVarTable:
                 self.table = a1
                 return
             a0 = mem.read_i32(a0 + 0x10)
-        raise Exception("NetVarTable [" + name + "] not found!")
+        raise Exception(f"NetVarTable [{name}] not found!")
 
     def get_offset(self, name):
         offset = self.__get_offset(self.table, name)
         if offset == 0:
-            raise Exception("Offset [" + name + "] not found!")
+            raise Exception(f"Offset [{name}] not found!")
         return offset
 
     def __get_offset(self, address, name):
@@ -254,7 +254,7 @@ class ConVar:
                 self.address = a0
                 return
             a0 = mem.read_i32(a0 + 0x4)
-        raise Exception("ConVar [" + name + "] not found!")
+        raise Exception(f"ConVar [{name}] not found!")
 
     def get_int(self):
         a0 = c_int32()
@@ -581,34 +581,34 @@ if __name__ == "__main__":
         print(e)
         exit(0)
 
-    print('[*]VirtualTables')
-    print('    VClient:            ' + hex(vt.client.table))
-    print('    VClientEntityList:  ' + hex(vt.entity.table))
-    print('    VEngineClient:      ' + hex(vt.engine.table))
-    print('    VEngineCvar:        ' + hex(vt.cvar.table))
-    print('    InputSystemVersion: ' + hex(vt.input.table))
-    print('[*]Offsets')
-    print('    EntityList:         ' + hex(nv.dwEntityList))
-    print('    ClientState:        ' + hex(nv.dwClientState))
-    print('    GetLocalPlayer:     ' + hex(nv.dwGetLocalPlayer))
-    print('    GetViewAngles:      ' + hex(nv.dwViewAngles))
-    print('    GetMaxClients:      ' + hex(nv.dwMaxClients))
-    print('    IsInGame:           ' + hex(nv.dwState))
-    print('[*]NetVars')
-    print('    m_iHealth:          ' + hex(nv.m_iHealth))
-    print('    m_vecViewOffset:    ' + hex(nv.m_vecViewOffset))
-    print('    m_lifeState:        ' + hex(nv.m_lifeState))
-    print('    m_nTickBase:        ' + hex(nv.m_nTickBase))
-    print('    m_vecPunch:         ' + hex(nv.m_vecPunch))
-    print('    m_iTeamNum:         ' + hex(nv.m_iTeamNum))
-    print('    m_vecOrigin:        ' + hex(nv.m_vecOrigin))
-    print('    m_hActiveWeapon:    ' + hex(nv.m_hActiveWeapon))
-    print('    m_iShotsFired:      ' + hex(nv.m_iShotsFired))
-    print('    m_iCrossHairID:     ' + hex(nv.m_iCrossHairID))
-    print('    m_dwBoneMatrix:     ' + hex(nv.m_dwBoneMatrix))
-    print('[*]Info')
-    print('    Creator:            github.com/ekknod')
-    print('    Websites:           https://ekknod.xyz')
+    print(f"""[*]VirtualTables
+    VClient:            {hex(vt.client.table)}
+    VClientEntityList:  {hex(vt.entity.table)}
+    VEngineClient:      {hex(vt.engine.table)}
+    VEngineCvar:        {hex(vt.cvar.table)}
+    InputSystemVersion: {hex(vt.input.table)}
+[*]Offsets
+    EntityList:         {hex(nv.dwEntityList)}
+    ClientState:        {hex(nv.dwClientState)}
+    GetLocalPlayer:     {hex(nv.dwGetLocalPlayer)}
+    GetViewAngles:      {hex(nv.dwViewAngles)}
+    GetMaxClients:      {hex(nv.dwMaxClients)}
+    IsInGame:           {hex(nv.dwState)}
+[*]NetVars
+    m_iHealth:          {hex(nv.m_iHealth)}
+    m_vecViewOffset:    {hex(nv.m_vecViewOffset)}
+    m_lifeState:        {hex(nv.m_lifeState)}
+    m_nTickBase:        {hex(nv.m_nTickBase)}
+    m_vecPunch:         {hex(nv.m_vecPunch)}
+    m_iTeamNum:         {hex(nv.m_iTeamNum)}
+    m_vecOrigin:        {hex(nv.m_vecOrigin)}
+    m_hActiveWeapon:    {hex(nv.m_hActiveWeapon)}
+    m_iShotsFired:      {hex(nv.m_iShotsFired)}
+    m_iCrossHairID:     {hex(nv.m_iCrossHairID)}
+    m_dwBoneMatrix:     {hex(nv.m_dwBoneMatrix)}
+[*]Info
+    Creator:            github.com/ekknod
+    Websites:           https://ekknod.xyz""")
     while mem.is_running() and not InputSystem.is_button_down(g_exit_key):
         k32.Sleep(1)
         if Engine.is_in_game():
@@ -625,13 +625,12 @@ if __name__ == "__main__":
                         if not mp_teammates_are_enemies.get_int() and self.get_team_num() == entity.get_team_num():
                             continue
                         entity_health = entity.get_health() / 100.0
-                        index = mem.read_i32(entity.address + nv.m_iGlowIndex) * 0x38
-                        mem.write_float(glow_pointer + index + 0x08, 1.0 - entity_health)  # r
-                        mem.write_float(glow_pointer + index + 0x0C, entity_health)        # g
-                        mem.write_float(glow_pointer + index + 0x10, 0.0)                  # b
-                        mem.write_float(glow_pointer + index + 0x14, 0.8)                  # a
-                        mem.write_i8(glow_pointer + index + 0x28, 1)
-                        mem.write_i8(glow_pointer + index + 0x29, 0)
+                        index = glow_pointer + mem.read_i32(entity.address + nv.m_iGlowIndex) * 0x38
+                        mem.write_float(index + 0x08, 1.0 - entity_health)
+                        mem.write_float(index + 0x0C, entity_health)
+                        mem.write_float(index + 0x14, 0.8)
+                        mem.write_i8(index + 0x28, 1)
+                        mem.write_i8(index + 0x29, 0)
                 if InputSystem.is_button_down(g_triggerbot_key):
                     cross_id = self.get_cross_index()
                     if cross_id == 0:
@@ -664,4 +663,3 @@ if __name__ == "__main__":
         else:
             g_previous_tick = 0
             target_set(Player(0))
-
